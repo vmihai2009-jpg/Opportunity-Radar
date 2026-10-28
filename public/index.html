@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E4EAA6">
+<meta name="description" content="Barr Gazetas Opportunity Radar: architecture tenders, design competitions, public realm and heritage briefs in London and the South East, refreshed automatically every 30 minutes.">
+<title>Opportunity Radar | Barr Gazetas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ---- Barr Gazetas theme (sampled from barrgazetas.com) ---- */
+:root{
+  --lime:#E4EAA6;      /* Projects page background */
+  --sand:#DBCFB4;      /* Practice page background */
+  --ink:#000;
+  --paper:#F7F8E8;     /* cards: a lighter step of the lime */
+  --rule:#000;
+  --soft:rgba(0,0,0,.62);
+  --faint:rgba(0,0,0,.14);
+  --alert:#9b2d12;
+  --ok:#1f5f2c;
+  --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --serif:'Times New Roman',Times,Georgia,serif;
+  --body:Barlow,'Helvetica Neue',Arial,sans-serif;
+  --max:1440px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--lime);color:var(--ink);font-family:var(--body);font-size:15px;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.shell{max-width:var(--max);margin:0 auto;padding:0 24px}
+.outline{color:transparent;-webkit-text-stroke:1px var(--ink)}
+@supports not (-webkit-text-stroke:1px black){.outline{color:var(--soft)}}
+
+/* Header - mirrors the BG site navigation */
+.mast{position:sticky;top:0;z-index:20;background:var(--lime)}
+.mast-in{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;height:64px}
+.brand{font-family:var(--display);font-weight:600;font-size:30px;letter-spacing:-.01em;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px;white-space:nowrap}
+.nav{display:flex;gap:40px;font-family:var(--display);font-weight:500;font-size:28px}
+.nav a{text-decoration:none}
+.nav a[aria-current]{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
+.nav a:hover{text-decoration:underline;text-underline-offset:5px}
+.mast-right{justify-self:end;font-family:var(--display);font-weight:500;font-size:28px;text-decoration:none}
+.mast-right:hover{text-decoration:underline;text-underline-offset:5px}
+
+/* Intro */
+.intro{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:end;padding:44px 0 26px}
+.intro h1{font-family:var(--display);font-weight:500;font-size:clamp(64px,9vw,148px);line-height:.86;letter-spacing:-.02em;margin:0}
+.intro p{font-family:var(--serif);font-size:clamp(20px,1.7vw,26px);line-height:1.25;margin:0;max-width:560px}
+.livebar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:12px 0;font-size:14px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);margin-right:8px;vertical-align:1px}
+.dot.off{background:var(--alert)}
+.dot.wait{background:#7a7a7a}
+.livebar .spacer{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--ink);background:transparent;padding:9px 16px;font-size:14px;font-weight:500;min-height:40px;text-decoration:none;border-radius:0;transition:background .15s,color .15s}
+.btn:hover{background:var(--ink);color:var(--lime)}
+.btn.solid{background:var(--ink);color:var(--lime)}
+.btn.solid:hover{background:#2b2b2b}
+.btn.full{width:100%}
+.btn[disabled]{opacity:.55;cursor:progress}
+.spin{width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;display:none}
+.busy .spin{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Category list - set like the BG project index */
+.cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 24px;padding:28px 0 30px}
+.cat{background:none;border:0;padding:0;text-align:left;font-family:var(--display);font-weight:500;font-size:clamp(26px,2.4vw,34px);line-height:1.12;display:flex;gap:10px;align-items:baseline}
+.cat sup{font-family:var(--body);font-size:13px;font-weight:500;letter-spacing:.02em}
+.cat.active span{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
+.cat:hover span{text-decoration:underline;text-underline-offset:5px}
+.cat.empty span{color:transparent;-webkit-text-stroke:1px var(--ink)}
+
+/* Numbers */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule);margin-bottom:34px}
+.kpi{padding:16px 0 4px;border-right:1px solid var(--faint);padding-left:16px}
+.kpi:first-child{padding-left:0}
+.kpi:last-child{border-right:0}
+.kpi b{display:block;font-family:var(--display);font-weight:500;font-size:56px;line-height:1}
+.kpi span{font-size:13px}
+
+/* Layout */
+.work{display:grid;grid-template-columns:290px minmax(0,1fr);gap:40px;align-items:start;padding-bottom:70px}
+.side{display:grid;gap:14px;position:sticky;top:78px;max-height:calc(100vh - 90px);overflow:auto;padding-bottom:10px}
+.panel{background:var(--sand);padding:18px}
+.panel h2{font-family:var(--display);font-weight:500;font-size:26px;line-height:1;margin:0 0 14px}
+.panel h2.serif{font-family:var(--serif);font-weight:400;font-size:28px}
+.field{margin:0 0 12px}
+.field label{display:block;font-size:12px;font-weight:600;margin-bottom:5px}
+.field input,.field select,.subscribe input{width:100%;min-height:40px;border:1px solid var(--ink);background:var(--paper);padding:8px 10px;border-radius:0;font-size:14px}
+.check{display:flex;gap:9px;align-items:center;font-size:14px;margin:4px 0 14px;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:#000}
+.stack{display:grid;gap:7px}
+.fine{font-size:12px;line-height:1.5;margin:10px 0 0}
+.subscribe{display:grid;gap:8px}
+.subscribe p{font-size:14px;line-height:1.5;margin:0 0 4px}
+.msg{font-size:13px;line-height:1.45;min-height:1em}
+.msg.err{color:var(--alert)}
+.sources{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.sources li{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:baseline;font-size:13px;border-bottom:1px solid var(--faint);padding-bottom:8px}
+.sources a{text-decoration:none;font-weight:600}
+.sources a:hover{text-decoration:underline}
+.sources small{grid-column:2/4;font-size:11.5px;color:var(--soft);line-height:1.35}
+
+/* Results */
+.results-head{display:flex;justify-content:space-between;align-items:end;gap:16px;border-bottom:1px solid var(--rule);padding-bottom:12px}
+.results-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(30px,3vw,44px);line-height:1;margin:0}
+.results-head select{border:1px solid var(--ink);background:transparent;min-height:38px;padding:6px 8px;border-radius:0}
+.note{font-size:13px;line-height:1.5;margin:14px 0 4px;max-width:900px}
+.group{margin-top:34px;scroll-margin-top:80px}
+.group-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}
+.group-head h3{font-family:var(--display);font-weight:500;font-size:40px;line-height:1;margin:0}
+.group-head span{font-size:13px}
+.cards{display:grid;gap:10px}
+.opp{background:var(--paper);display:grid;grid-template-columns:minmax(0,1fr) 200px}
+.opp-main{padding:18px 20px}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;border:1px solid var(--ink);padding:3px 7px;line-height:1.3}
+.pill.new{background:var(--ink);color:var(--lime)}
+.pill.fit-high{background:var(--lime)}
+.pill.fit-adjacent,.pill.muted{border-color:var(--faint);color:var(--soft)}
+.pill.warn{border-color:var(--alert);color:var(--alert)}
+.opp h4{font-family:var(--display);font-weight:500;font-size:27px;line-height:1.05;margin:12px 0 8px}
+.opp h4 a{text-decoration:none}
+.opp h4 a:hover{text-decoration:underline;text-underline-offset:4px}
+.desc{font-size:14px;line-height:1.55;margin:0 0 12px;max-width:820px}
+.facts{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:12.5px}
+.facts b{font-weight:600}
+.assess{margin-top:12px;font-size:13px;line-height:1.5;border-left:2px solid var(--ink);padding:2px 0 2px 10px}
+.warning{margin-top:8px;font-size:13px;line-height:1.5;border-left:2px solid var(--alert);padding:2px 0 2px 10px;color:var(--alert)}
+.opp-side{border-left:1px solid var(--faint);padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.k{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.deadline{font-family:var(--display);font-weight:500;font-size:28px;line-height:1;margin-top:4px}
+.small{font-size:12px;line-height:1.35;margin-top:3px}
+.money{font-family:var(--display);font-weight:500;font-size:24px;line-height:1;margin-top:4px}
+.star{background:transparent;border:1px solid var(--ink);min-height:36px;font-size:13px}
+.star.saved{background:var(--ink);color:var(--lime)}
+.empty{padding:40px 0;font-family:var(--serif);font-size:24px}
+.more{margin-top:12px}
+
+footer{background:var(--sand)}
+.foot{display:grid;grid-template-columns:1.2fr 1fr;gap:30px;padding:34px 24px 40px;font-size:13px;line-height:1.6}
+.foot .brand{font-size:26px}
+.foot p{margin:10px 0 0;max-width:640px}
+
+dialog{border:0;padding:26px;width:min(600px,94vw);max-height:92vh;overflow:auto;background:var(--sand);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog h2{font-family:var(--serif);font-weight:400;font-size:34px;margin:0 0 6px}
+dialog .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+dialog .buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+@media (max-width:1080px){
+  .nav{gap:24px;font-size:24px}.mast-right{font-size:24px}
+  .work{grid-template-columns:240px minmax(0,1fr);gap:24px}
+  .opp{grid-template-columns:1fr}
+  .opp-side{border-left:0;border-top:1px solid var(--faint);flex-direction:row;flex-wrap:wrap;align-items:flex-end}
+}
+@media (max-width:780px){
+  .mast-in{grid-template-columns:1fr auto;height:auto;padding-top:12px;padding-bottom:10px;row-gap:6px}
+  .nav{grid-column:1/3;grid-row:2;gap:20px;font-size:21px;overflow-x:auto}
+  .brand{font-size:26px}.mast-right{font-size:21px}
+  .intro{grid-template-columns:1fr;gap:18px;padding-top:26px}
+  .cats{grid-template-columns:1fr 1fr}
+  .kpis{grid-template-columns:1fr 1fr}.kpi:nth-child(3){padding-left:0}.kpi b{font-size:44px}
+  .work{grid-template-columns:1fr}
+  .side{position:static;max-height:none;order:2}
+  .results-head{flex-wrap:wrap}
+  dialog .two{grid-template-columns:1fr}
+  .foot{grid-template-columns:1fr}
+}
+@media (max-width:420px){.shell{padding:0 16px}.cats{grid-template-columns:1fr}.opp-main{padding:16px}}
+@media print{
+  .mast,.livebar,.cats,.kpis,.side,.star,.results-head select,footer,.more{display:none!important}
+  body{background:#fff}.opp{background:#fff;border-bottom:1px solid #000;break-inside:avoid}.work{display:block}
+}
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="shell mast-in">
+    <a class="brand" href="https://barrgazetas.com/" target="_blank" rel="noopener">Barr Gazetas</a>
+    <nav class="nav" aria-label="Radar sections">
+      <a href="#radar" aria-current="page">Radar</a>
+      <a href="#briefing">Briefing</a>
+      <a href="#sources-panel">Sources</a>
+    </nav>
+    <a class="mast-right" href="https://www.barrgazetas-toolkit.co.uk/">Toolkit</a>
+  </div>
+</header>
+
+<main class="shell" id="radar">
+  <section class="intro">
+    <h1>Opportunity<br>Radar</h1>
+    <p>Architectural appointments, design competitions and early-stage commissions across London and the South East, read straight from the tender portals and the architectural press.</p>
+  </section>
+
+  <div class="livebar" role="status" aria-live="polite">
+    <span><span class="dot wait" id="liveDot"></span><span id="liveText">Connecting to the live feed…</span></span>
+    <span id="nextText"></span>
+    <span class="spacer"></span>
+    <button class="btn" id="refresh" type="button"><span class="spin"></span><span class="label">Refresh now</span></button>
+  </div>
+
+  <nav class="cats" id="cats" aria-label="Opportunity type"></nav>
+
+  <div class="kpis">
+    <div class="kpi"><b id="kAll">0</b><span>In view</span></div>
+    <div class="kpi"><b id="kNew">0</b><span>New this week</span></div>
+    <div class="kpi"><b id="kLive">0</b><span>Deadline ahead</span></div>
+    <div class="kpi"><b id="kSaved">0</b><span>On your shortlist</span></div>
+  </div>
+
+  <div class="work">
+    <aside class="side">
+      <section class="panel">
+        <h2>Refine</h2>
+        <div class="field"><label for="q">Keyword</label><input id="q" type="search" placeholder="e.g. retrofit, Camden, framework"></div>
+        <div class="field"><label for="region">Location</label>
+          <select id="region">
+            <option value="core">London + South East</option>
+            <option value="London">London only</option>
+            <option value="South East">South East only</option>
+            <option value="National">UK-wide frameworks</option>
+            <option value="all">Everything, incl. international</option>
+          </select></div>
+        <div class="field"><label for="fit">BG fit</label>
+          <select id="fit"><option value="all">All</option><option value="strong">High + medium</option><option value="high">High only</option></select></div>
+        <div class="field"><label for="status">Status</label>
+          <select id="status"><option value="all">All</option><option value="new">New this week</option><option value="live">Deadline ahead</option><option value="pipeline">Pipeline / early stage</option><option value="saved">My shortlist</option></select></div>
+        <div class="field"><label for="source">Source</label><select id="source"><option value="all">All sources</option></select></div>
+        <label class="check"><input id="hidePast" type="checkbox" checked> Hide past deadlines</label>
+        <div class="stack">
+          <button class="btn full" id="reset" type="button">Clear filters</button>
+          <button class="btn full" id="add" type="button">+ Add an opportunity</button>
+        </div>
+      </section>
+
+      <section class="panel" id="briefing">
+        <h2 class="serif">Monday briefing</h2>
+        <form class="subscribe" id="subForm">
+          <p>Every Monday morning: the competitions and tenders added that week in London and Greater London, straight to your inbox.</p>
+          <label for="subEmail" class="k">Email</label>
+          <input id="subEmail" type="email" required autocomplete="email" placeholder="name@barrgazetas.com">
+          <button class="btn solid full" type="submit">Sign up</button>
+          <div class="msg" id="subMsg" role="status"></div>
+          <p class="fine">You'll get a confirmation email first. Unsubscribe from any email in one click.</p>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Export</h2>
+        <div class="stack">
+          <button class="btn full" id="copy" type="button">Copy digest</button>
+          <button class="btn full" id="csv" type="button">Download CSV</button>
+          <button class="btn full" id="print" type="button">Print / save PDF</button>
+        </div>
+        <p class="fine">Exports follow your current filters. Shortlist and manual additions are saved in this browser only.</p>
+      </section>
+
+      <section class="panel" id="sources-panel">
+        <h2>Sources</h2>
+        <ul class="sources" id="sources"></ul>
+        <p class="fine">Read automatically every 30 minutes with fixed rules: CPV 71000000 for government notices, keyword and location filters for the press. No AI is involved.</p>
+      </section>
+    </aside>
+
+    <section aria-label="Opportunities">
+      <div class="results-head">
+        <h2 id="resultsTitle">Worth pursuing</h2>
+        <label><span class="k" style="margin-right:6px">Sort</span>
+          <select id="sort"><option value="priority">By priority + fit</option><option value="new">Newest first</option><option value="deadline">Closing soonest</option></select></label>
+      </div>
+      <p class="note">Government notices come from Find a Tender and Contracts Finder (CPV 71000000 family, London + South East delivery). Press items from AJ, Dezeen and others are leads: open the source and check the brief, eligibility and deadline before bidding. Values may be whole-framework totals, not fees.</p>
+      <div id="groups"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="shell foot">
+    <div><span class="brand">Barr Gazetas</span><p>Opportunity Radar is an internal business-development tool. It is not an official procurement platform. Always confirm details on the original notice.</p></div>
+    <div><p><a href="https://barrgazetas.com/projects" target="_blank" rel="noopener">Projects</a> · <a href="https://www.barrgazetas-toolkit.co.uk/">Toolkit</a> · <a href="https://www.find-tender.service.gov.uk/" target="_blank" rel="noopener">Find a Tender</a></p><p id="footStamp"></p></div>
+  </div>
+</footer>
+
+<dialog id="addDialog">
+  <form id="addForm" method="dialog">
+    <h2>Add an opportunity</h2>
+    <p class="fine">Saved in this browser only.</p>
+    <div class="field"><label for="fTitle">Title *</label><input id="fTitle" name="title" required maxlength="160"></div>
+    <div class="two">
+      <div class="field"><label for="fGroup">Type</label><select id="fGroup" name="group"><option>Delivery</option><option>Feasibility</option><option>Competition</option><option>Public realm</option><option>Heritage</option></select></div>
+      <div class="field"><label for="fRegion">Region</label><select id="fRegion" name="region"><option>London</option><option>South East</option></select></div>
+    </div>
+    <div class="field"><label for="fBuyer">Client</label><input id="fBuyer" name="buyer" maxlength="150"></div>
+    <div class="field"><label for="fBrief">Short brief *</label><input id="fBrief" name="brief" required maxlength="400"></div>
+    <div class="two">
+      <div class="field"><label for="fDate">Deadline</label><input id="fDate" name="date" type="date"></div>
+      <div class="field"><label for="fFit">BG fit</label><select id="fFit" name="fit"><option>High</option><option>Medium</option><option>Conditional</option><option>Adjacent</option></select></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="fAmount">Value</label><input id="fAmount" name="amount" placeholder="e.g. £100k"></div>
+      <div class="field"><label for="fURL">Source link *</label><input id="fURL" name="url" type="url" required placeholder="https://"></div>
+    </div>
+    <div class="buttons"><button class="btn" type="button" id="cancel">Cancel</button><button class="btn solid" type="submit">Save</button></div>
+  </form>
+</dialog>
+
+<script>
+'use strict';
+const GROUPS = [
+  ['Delivery', 'Architectural appointments, design services and frameworks'],
+  ['Feasibility', 'Options studies, masterplans and pre-market engagement'],
+  ['Competition', 'Design competitions, open calls and shortlists'],
+  ['Public realm', 'Placemaking, landscape and streetscape commissions'],
+  ['Heritage', 'Conservation-led and listed-building work'],
+];
+const FIT_RANK = { High: 0, Medium: 1, Conditional: 2, Adjacent: 3 };
+const PAGE = 25;
+const K = 'bg-radar-v4-';
+const $ = (id) => document.getElementById(id);
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(K + k)) ?? d; } catch { return d; } };
+const keep = (k, v) => { try { localStorage.setItem(K + k, JSON.stringify(v)); } catch {} };
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const safeUrl = (u) => (/^https?:\/\//i.test(String(u || '')) ? u : '#');
+
+let data = { items: [], sources: [], lastCrawl: null };
+let live = false;
+let manual = load('manual', []);
+let saved = new Set(load('saved', []));
+let activeGroup = 'All';
+let shown = {};
+
+const today = () => new Date().toISOString().slice(0, 10);
+const daysLeft = (x) => (x.date ? Math.ceil((Date.parse(x.date + 'T23:59:59') - Date.now()) / 86400000) : null);
+const isNew = (x) => x.firstSeen && Date.now() - Date.parse(x.firstSeen) < 7 * 86400000;
+const fmtDate = (v) => (v ? new Date(v + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+const fmtTime = (iso) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+const ago = (iso) => { const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`; };
+
+function stateOf(x) {
+  if (x.date && daysLeft(x) < 0) return 'expired';
+  if (/pipeline|pre-market|market engagement|planning/i.test(x.stage || '') && !x.date) return 'pipeline';
+  if (x.date) return 'live';
+  return x.kind === 'press' ? 'lead' : 'unclear';
+}
+const STATE_LABEL = { live: 'Open', pipeline: 'Pipeline', expired: 'Deadline passed', lead: 'Lead · verify', unclear: 'Check notice' };
+
+function all() {
+  const seen = new Set();
+  return [...manual, ...data.items].filter((x) => x && x.title && x.url && !seen.has(x.id) && seen.add(x.id));
+}
+
+function filtered() {
+  const q = $('q').value.trim().toLowerCase();
+  const region = $('region').value, fit = $('fit').value, status = $('status').value, source = $('source').value;
+  const hide = $('hidePast').checked;
+  return all().filter((x) =>
+    (region === 'all' || (region === 'core' ? ['London', 'South East'].includes(x.region) : x.region === region)) &&
+    (fit === 'all' || (fit === 'strong' ? ['High', 'Medium'].includes(x.fit) : x.fit === 'High')) &&
+    (status === 'all' || (status === 'saved' ? saved.has(x.id) : status === 'new' ? isNew(x) : stateOf(x) === status)) &&
+    (source === 'all' || x.source === source) &&
+    (!hide || stateOf(x) !== 'expired') &&
+    (!q || [x.title, x.brief, x.buyer, x.place, x.region, x.source, (x.tags || []).join(' '), x.ref].join(' ').toLowerCase().includes(q))
+  );
+}
+
+function sortList(list) {
+  const mode = $('sort').value;
+  return list.sort((a, b) => {
+    if (mode === 'new') return (b.firstSeen || b.published || '').localeCompare(a.firstSeen || a.published || '');
+    if (mode === 'deadline') return (a.date || '9999').localeCompare(b.date || '9999');
+    return (a.kind === 'press') - (b.kind === 'press') || (FIT_RANK[a.fit] ?? 4) - (FIT_RANK[b.fit] ?? 4) || (a.date || '9999').localeCompare(b.date || '9999');
+  });
+}
+
+function card(x) {
+  const st = stateOf(x), d = daysLeft(x), url = safeUrl(x.url);
+  const pills = [
+    isNew(x) ? '<span class="pill new">New</span>' : '',
+    `<span class="pill fit-${esc(String(x.fit || '').toLowerCase())}">${esc(x.fit || 'Review')} fit</span>`,
+    `<span class="pill ${st === 'expired' ? 'muted' : ''}">${esc(STATE_LABEL[st])}</span>`,
+    `<span class="pill muted">${esc(x.region || '')}</span>`,
+    x.kind === 'manual' ? '<span class="pill muted">Added by you</span>' : '',
+  ].join('');
+  const facts = [
+    x.buyer && `<span><b>Client</b> ${esc(x.buyer)}</span>`,
+    x.place && x.place !== x.region && `<span><b>Location</b> ${esc(x.place)}</span>`,
+    x.stage && `<span><b>Stage</b> ${esc(x.stage)}</span>`,
+    `<span><b>Source</b> ${esc(x.source || 'Manual')}</span>`,
+    x.ref && `<span><b>Ref</b> ${esc(x.ref)}</span>`,
+    x.cpv && x.cpv.length && `<span><b>CPV</b> ${esc(x.cpv.join(', '))}</span>`,
+    x.tags && x.tags.length && `<span><b>Focus</b> ${esc(x.tags.join(' / '))}</span>`,
+  ].filter(Boolean).join('');
+  return `<article class="opp">
+    <div class="opp-main">
+      <div class="pills">${pills}</div>
+      <h4><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(x.title)}</a></h4>
+      <p class="desc">${esc(x.brief || '')}</p>
+      <div class="facts">${facts}</div>
+      ${x.rationale ? `<div class="assess"><b>BG view:</b> ${esc(x.rationale)}</div>` : ''}
+      ${x.action ? `<div class="assess"><b>Next step:</b> ${esc(x.action)}</div>` : ''}
+      ${x.warning ? `<div class="warning">${esc(x.warning)}</div>` : ''}
+    </div>
+    <div class="opp-side">
+      <div>
+        <div class="k">${x.date ? 'Deadline' : x.milestone ? 'Next milestone' : 'Deadline'}</div>
+        <div class="deadline">${x.date ? esc(fmtDate(x.date)) : x.milestone ? esc(fmtDate(x.milestone)) : 'See notice'}</div>
+        ${x.time ? `<div class="small">${esc(x.time)} UK time</div>` : ''}
+        ${d !== null && st === 'live' ? `<div class="small">${d === 0 ? 'Closes today' : `${d} day${d === 1 ? '' : 's'} left`}</div>` : ''}
+        ${x.kind === 'press' && x.date ? '<div class="small">Read from article text, so verify</div>' : ''}
+        ${x.amount ? `<div style="margin-top:14px"><div class="k">Value</div><div class="money">${esc(x.amount)}</div>${x.valueType ? `<div class="small">${esc(x.valueType)}</div>` : ''}</div>` : ''}
+        ${x.published ? `<div class="small" style="margin-top:12px">Published ${esc(fmtDate(String(x.published).slice(0, 10)))}</div>` : ''}
+      </div>
+      <div class="stack">
+        <button type="button" class="btn star ${saved.has(x.id) ? 'saved' : ''}" data-star="${esc(x.id)}">${saved.has(x.id) ? '★ Shortlisted' : '☆ Shortlist'}</button>
+        <a class="btn" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Open source ↗</a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function paint() {
+  const list = sortList(filtered());
+  const counts = Object.fromEntries(GROUPS.map(([g]) => [g, list.filter((x) => x.group === g).length]));
+  $('cats').innerHTML = [['All', list.length], ...GROUPS.map(([g]) => [g, counts[g]])]
+    .map(([g, n]) => `<button type="button" class="cat ${activeGroup === g ? 'active' : ''} ${n ? '' : 'empty'}" data-group="${esc(g)}" aria-pressed="${activeGroup === g}"><span>${g === 'All' ? 'All opportunities' : esc(g)}</span><sup>${n}</sup></button>`).join('');
+  $('kAll').textContent = list.length;
+  $('kNew').textContent = list.filter(isNew).length;
+  $('kLive').textContent = list.filter((x) => stateOf(x) === 'live').length;
+  $('kSaved').textContent = saved.size;
+  $('resultsTitle').textContent = activeGroup === 'All' ? 'Worth pursuing' : activeGroup;
+
+  $('groups').innerHTML = GROUPS.map(([g, sub]) => {
+    if (activeGroup !== 'All' && activeGroup !== g) return '';
+    const set = list.filter((x) => x.group === g);
+    if (!set.length) return '';
+    const limit = shown[g] || PAGE;
+    return `<section class="group" id="g-${esc(g.replace(/\s/g, '-'))}">
+      <div class="group-head"><div><h3>${esc(g)}</h3><span>${esc(sub)}</span></div><span>${set.length} opportunit${set.length === 1 ? 'y' : 'ies'}</span></div>
+      <div class="cards">${set.slice(0, limit).map(card).join('')}</div>
+      ${set.length > limit ? `<button type="button" class="btn more" data-more="${esc(g)}">Show ${Math.min(PAGE, set.length - limit)} more</button>` : ''}
+    </section>`;
+  }).join('') || '<p class="empty">Nothing matches these filters. Try widening the location or clearing the keyword.</p>';
+}
+
+function paintSources() {
+  const sel = $('source'), cur = sel.value;
+  const names = [...new Set(all().map((x) => x.source).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="all">All sources</option>' + names.map((n) => `<option ${n === cur ? 'selected' : ''}>${esc(n)}</option>`).join('');
+  $('sources').innerHTML = (data.sources || []).map((s) => {
+    const dot = s.ok === true ? '' : s.ok === false ? 'off' : 'wait';
+    const detail = s.ok === true ? `${s.found} found${s.added ? `, ${s.added} new` : ''} · checked ${ago(s.checkedAt)}${s.note ? ` · ${s.note}` : ''}`
+      : s.ok === false ? `Couldn't be read last time (${s.error || 'error'})${s.lastOk ? `. Last success ${ago(s.lastOk)}` : ''}` : 'Waiting for first check';
+    return `<li><span class="dot ${dot}"></span><a href="${esc(safeUrl(s.home))}" target="_blank" rel="noopener">${esc(s.name)}</a><span></span><small>${esc(detail)}</small></li>`;
+  }).join('') || '<li><small>Source status appears once the live service is running.</small></li>';
+}
+
+function paintLive() {
+  if (live && data.lastCrawl) {
+    const failing = (data.sources || []).filter((s) => s.ok === false).length;
+    $('liveDot').className = 'dot' + (failing ? ' wait' : '');
+    $('liveText').textContent = `Live · sources last checked ${fmtTime(data.lastCrawl)} (${ago(data.lastCrawl)})${failing ? ` · ${failing} source${failing > 1 ? 's' : ''} unavailable` : ''}`;
+    $('nextText').textContent = data.nextCrawlBy ? `Next automatic check by ${fmtTime(data.nextCrawlBy)}` : '';
+    $('footStamp').textContent = `Data updated ${new Date(data.lastCrawl).toLocaleString('en-GB')}`;
+  } else if (live) {
+    $('liveDot').className = 'dot wait';
+    $('liveText').textContent = 'Live service connected. The first automatic check runs within 30 minutes, or press Refresh now.';
+    $('nextText').textContent = '';
+  } else {
+    $('liveDot').className = 'dot off';
+    $('liveText').textContent = 'Offline copy: showing the researched starting list only. Live crawling runs once the site is deployed on Netlify.';
+    $('nextText').textContent = '';
+  }
+}
+
+function render() { paintSources(); paintLive(); paint(); }
+
+async function loadData() {
+  try {
+    const res = await fetch('/api/radar', { cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    data = await res.json();
+    live = true;
+  } catch {
+    if (!live) {
+      try { data = { items: await (await fetch('seeds.json')).json(), sources: [] }; } catch { data = { items: [], sources: [] }; }
+    }
+  }
+  render();
+}
+
+$('refresh').onclick = async () => {
+  const b = $('refresh');
+  if (!live) { $('liveText').textContent = 'Refresh needs the live service (deployed on Netlify).'; return; }
+  b.disabled = true; b.classList.add('busy'); b.querySelector('.label').textContent = 'Checking sources…';
+  try {
+    const res = await fetch('/api/refresh', { method: 'POST' });
+    const out = await res.json();
+    if (!res.ok) throw new Error(out.message || res.status);
+    data = out; render();
+    b.querySelector('.label').textContent = out.refreshed ? 'Updated ✓' : 'Already up to date';
+  } catch (e) {
+    b.querySelector('.label').textContent = 'Try again';
+    $('liveText').textContent = 'Refresh failed: ' + e.message;
+  } finally {
+    b.classList.remove('busy');
+    setTimeout(() => { b.disabled = false; b.querySelector('.label').textContent = 'Refresh now'; }, 4000);
+  }
+};
+
+$('cats').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-group]'); if (!b) return;
+  activeGroup = b.dataset.group === activeGroup ? 'All' : b.dataset.group; paint();
+});
+$('groups').addEventListener('click', (e) => {
+  const star = e.target.closest('[data-star]');
+  if (star) { const id = star.dataset.star; saved.has(id) ? saved.delete(id) : saved.add(id); keep('saved', [...saved]); paint(); }
+  const more = e.target.closest('[data-more]');
+  if (more) { const g = more.dataset.more; shown[g] = (shown[g] || PAGE) + PAGE; paint(); }
+});
+['q', 'region', 'fit', 'status', 'source', 'hidePast', 'sort'].forEach((id) => $(id).addEventListener(id === 'q' ? 'input' : 'change', () => { shown = {}; paint(); }));
+$('reset').onclick = () => { $('q').value = ''; $('region').value = 'core'; $('fit').value = 'all'; $('status').value = 'all'; $('source').value = 'all'; $('hidePast').checked = true; activeGroup = 'All'; shown = {}; paint(); };
+
+$('subForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const msg = $('subMsg'); msg.className = 'msg'; msg.textContent = 'Signing you up…';
+  try {
+    const res = await fetch('/api/newsletter/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: $('subEmail').value }) });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok || !out.ok) throw new Error(out.message || 'Sign-up is not available yet.');
+    msg.textContent = out.message; e.target.reset();
+  } catch (err) {
+    msg.className = 'msg err'; msg.textContent = live ? err.message : 'Sign-up works once the site is deployed on Netlify.';
+  }
+};
+
+function digest() {
+  const list = sortList(filtered());
+  return `BARR GAZETAS · OPPORTUNITY RADAR\n${new Date().toLocaleDateString('en-GB', { dateStyle: 'full' })}\n\n` +
+    GROUPS.map(([g]) => { const l = list.filter((x) => x.group === g); return l.length ? `${g.toUpperCase()}\n` + l.map((x) => `• ${x.title}\n  ${x.buyer || 'Client TBC'} | ${x.place || x.region} | ${x.fit} fit | ${STATE_LABEL[stateOf(x)]}\n  Deadline: ${fmtDate(x.date) || 'see notice'} | Value: ${x.amount || 'not published'}\n  ${x.url}`).join('\n\n') : ''; }).filter(Boolean).join('\n\n') +
+    '\n\nCheck every original notice before bidding.';
+}
+$('copy').onclick = async () => { try { await navigator.clipboard.writeText(digest()); $('copy').textContent = 'Copied ✓'; setTimeout(() => ($('copy').textContent = 'Copy digest'), 1800); } catch { prompt('Copy this text', digest()); } };
+$('print').onclick = () => window.print();
+$('csv').onclick = () => {
+  const rows = [['Type', 'Title', 'Client', 'Location', 'Region', 'Stage', 'Status', 'Deadline', 'Value', 'BG fit', 'Source', 'Reference', 'First seen', 'Link', 'Brief'],
+    ...sortList(filtered()).map((x) => [x.group, x.title, x.buyer, x.place, x.region, x.stage, STATE_LABEL[stateOf(x)], x.date, x.amount, x.fit, x.source, x.ref, (x.firstSeen || '').slice(0, 10), x.url, x.brief])];
+  const csv = rows.map((r) => r.map((v) => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `BG-Opportunity-Radar-${today()}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+
+$('add').onclick = () => $('addDialog').showModal();
+$('cancel').onclick = () => $('addDialog').close();
+$('addForm').onsubmit = (e) => {
+  e.preventDefault();
+  const f = Object.fromEntries(new FormData(e.target));
+  manual.unshift({ ...f, id: 'manual-' + Date.now(), kind: 'manual', place: f.region, source: 'Added manually', stage: 'Added manually', firstSeen: new Date().toISOString(), tags: [] });
+  keep('manual', manual); $('addDialog').close(); e.target.reset(); render();
+};
+
+loadData();
+setInterval(loadData, 5 * 60 * 1000); // keep an open tab current
+setInterval(paintLive, 60 * 1000);
+</script>
+</body>
+</html>
