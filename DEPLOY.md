@@ -99,5 +99,10 @@ sources carry on.
 - www.riba.org
 - www.londonfestivalofarchitecture.org
 - www.heritagenetwork.org.uk
+- bustler.net
+- www.malcolmreading.com
+- www.uia-architectes.org
+- uni.xyz
+- www.youngarchitectscompetitions.com
 - fonts.googleapis.com / fonts.gstatic.com (the page's fonts, loaded by visitors' browsers)
 - api.resend.com (only if using Resend for email)

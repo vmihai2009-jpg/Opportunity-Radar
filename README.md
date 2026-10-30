@@ -17,12 +17,18 @@ A Barr Gazetas–styled dashboard of architecture tenders, design competitions, 
 | **Contracts Finder** (gov.uk) | Official data API, same method | Same CPV and location rules |
 | **AJ Competitions** | Google News, limited to architectsjournal.co.uk (AJ blocks direct crawling, and its own competitions page is a 2014 archive) | Competition / "architect sought" / open call items |
 | **Dezeen** | Dezeen's RSS feed plus Google News limited to dezeen.com | Competitions and open calls |
-| **Competitions.archi** | RSS feed | Open international competitions (results are dropped) |
+| **Competitions.archi** | RSS feed, first 4 pages (about 3 months) | Open international competitions (results are dropped) |
+| **Bustler** | Competitions page plus Google News | Open competitions (winners dropped) |
+| **Malcolm Reading Consultants** | Homepage links to its competition sites plus Google News | Major invited / open competitions (check if still open) |
+| **UIA** | RSS feed plus Google News | Open calls and awards |
+| **UNI (uni.xyz)** | Competitions page | Open ideas competitions |
+| **Young Architects Competitions** | Homepage | Open calls only |
 | **ArchDaily** | RSS feed | Competition items |
 | **RIBA Competitions** | riba.org/explore/competitions page plus Google News | RIBA-run competitions |
 | **London Festival of Architecture** | LFA competitions page plus Google News | Only items that read as open calls (the page mostly lists past projects) |
 | **Heritage Network** | Opportunities page, with the deadline read from each listing | Design / conservation / survey briefs (not trustee or staff jobs) |
 | **News procurement searches** | Google News searches | Procurement and competition leads |
+| **Competition searches** | Google News searches over 60 days | Newly launched UK and international competitions |
 
 Plus the hand-researched starting list from 28 October 2026 (`lib/seeds.mjs`).
 

@@ -73,6 +73,12 @@ test('full crawl: every source read, filters applied, nothing missed', async () 
   const hn = byTitle(state, 'Architect and design team for Spitalfields chapel');
   assert.equal(hn.date, '2099-11-27', 'Heritage Network deadline read');
   assert.ok(!titles.some((t) => /Bookkeeper/.test(t)), 'non-design heritage roles dropped');
+  assert.ok(titles.includes('Re-Paris Prize') && !titles.includes('Read more'), 'Bustler page parsed, buttons skipped');
+  assert.ok(!titles.some((t) => /Winners announced/.test(t)), 'Bustler winners dropped');
+  assert.ok(titles.includes('Riverside Museum international design competition'), 'Malcolm Reading parsed');
+  assert.ok(titles.includes('Open Call: 2028 Global Award for Sustainable Architecture'), 'UIA feed read');
+  assert.ok(titles.includes('Concave') && !titles.includes('Past'), 'uni.xyz parsed');
+  assert.ok(titles.includes('House of Poetry') && !titles.includes('Old one'), 'YAC open calls only');
   assert.ok(view.items.some((x) => x.region === 'International'), 'International category has items');
 });
 
