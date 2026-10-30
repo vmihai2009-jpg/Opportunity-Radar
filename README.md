@@ -1,72 +1,61 @@
 # BG Opportunity Radar
 
-A Barr Gazetas–styled dashboard of architecture tenders, design competitions, public realm and heritage briefs in London and the South East.
+A Barr Gazetas–styled dashboard of architecture tenders, design competitions, public realm and heritage briefs, focused on London and the South East, with UK-wide and international competitions available through the Location filter.
 
-- **Updates itself every 30 minutes.** A scheduled job on Netlify reads every source and saves the results. There's no AI involved: everything runs on fixed, editable rules.
-- **Refresh now** button for an immediate check. It's limited to once every 2 minutes.
-- **Monday briefing:** people sign up with their email and get the new London / Greater London opportunities from the past week every Monday at 7am (8am in summer).
+- **Updates itself every 30 minutes**, using fixed rules only. There's no AI involved.
+- **Refresh now** button for an immediate check.
+- **Sources panel** shows, for every source, whether it was read successfully and how many opportunities it currently has on the radar.
+- **Monday briefing:** people sign up with their email and every Monday at 7am (London time) get the new London / Greater London opportunities from the past week. Double opt-in, one-click unsubscribe.
 
-## Sources
+**To install it on a server, see [DEPLOY.md](DEPLOY.md).** It covers Docker or plain Node.js, about 15 minutes.
 
-| Source | How it is read | Filter |
+## Sources and how each is read
+
+| Source | Method | What is kept |
 |---|---|---|
-| Find a Tender (gov.uk) | Official OCDS data API | CPV **71000000** and every code beneath it (712… architecture, 714… planning, etc.), delivery in London / South East (plus UK-wide frameworks) |
-| Contracts Finder (gov.uk) | Official OCDS data API | Same CPV and location filter, smaller contracts |
-| AJ Competitions | AJ competitions page + Google News limited to architectsjournal.co.uk | Competition / appointment keywords |
-| Dezeen | Dezeen RSS feed + Google News limited to dezeen.com | Competition / open call keywords |
-| RIBA Competitions, London Festival of Architecture | Google News | Competition keywords |
-| Heritage Network | Opportunities page | All listed briefs |
-| Google News procurement searches | The searches from the original radar | Procurement keywords, no student competitions |
+| **Find a Tender** (gov.uk) | Official data API, read in small time windows (tender and pipeline stages), plus a check of each new notice number so none is skipped | CPV **71000000** family (every code starting 71), delivery in London / South East, plus UK-wide frameworks |
+| **Contracts Finder** (gov.uk) | Official data API, same method | Same CPV and location rules |
+| **AJ Competitions** | Google News, limited to architectsjournal.co.uk (AJ blocks direct crawling, and its own competitions page is a 2014 archive) | Competition / "architect sought" / open call items |
+| **Dezeen** | Dezeen's RSS feed plus Google News limited to dezeen.com | Competitions and open calls |
+| **Competitions.archi** | RSS feed | Open international competitions (results are dropped) |
+| **ArchDaily** | RSS feed | Competition items |
+| **RIBA Competitions** | riba.org/explore/competitions page plus Google News | RIBA-run competitions |
+| **London Festival of Architecture** | LFA competitions page plus Google News | Only items that read as open calls (the page mostly lists past projects) |
+| **Heritage Network** | Opportunities page, with the deadline read from each listing | Design / conservation / survey briefs (not trustee or staff jobs) |
+| **News procurement searches** | Google News searches | Procurement and competition leads |
 
-Plus the hand-researched starting list from 28 October 2026 (`lib/seeds.mjs`). Each entry drops off automatically once its deadline passes.
+Plus the hand-researched starting list from 28 October 2026 (`lib/seeds.mjs`).
 
-The **Sources** panel on the page shows when each source was last read and whether it worked. If a site changes or blocks the crawler, that source shows a red dot and the others carry on.
+**How it stays reliable:**
+- Every request is retried automatically when a site is slow, busy or briefly down.
+- Most sources have two channels, so one can fail and the source still works.
+- If a whole source is down, the opportunities it found earlier stay on the radar and the others carry on.
+- Articles that appear through several sources are shown once.
 
-The first run looks back 14 days on Find a Tender and Contracts Finder. Each run reads up to about 20 seconds of notices, so the first backlog can take a few runs (an hour or two) to catch up. After that each run only reads what changed in the last 30 minutes.
-
-## Putting it live on Netlify (one-off, about 15 minutes)
-
-You need a free Netlify account and a free Resend account (for the emails).
-
-1. **Connect the repo to Netlify.** In Netlify choose **Add new project → Import an existing project → GitHub**, then pick `vmihai2009-jpg/Opportunity-Radar`. Leave the settings it suggests (they come from `netlify.toml`) and press **Deploy**.
-   *Don't use the drag-and-drop upload. That publishes the page but not the crawler, the timer or the emails.*
-2. **Check it runs.** Open the site address Netlify gives you (something like `https://bg-opportunity-radar.netlify.app`) and press **Refresh now**. Within about 30 seconds the Sources panel should show green dots. From then on it updates by itself. In Netlify you can watch it under **Logs → Functions → crawl-scheduled**.
-3. **Set up the emails.**
-   1. Sign up at [resend.com](https://resend.com). Under **Domains**, add a domain you control, for example `barrgazetas-toolkit.co.uk`, and add the DNS records it shows you. Whoever manages that domain can do this in 5 minutes.
-   2. In Resend, create an **API key**.
-   3. In Netlify go to **Project configuration → Environment variables** and add:
-      - `RESEND_API_KEY`: the key from Resend
-      - `MAIL_FROM`: e.g. `BG Opportunity Radar <radar@barrgazetas-toolkit.co.uk>` (must be on the domain you verified)
-      - `SITE_URL`: the radar's public address, e.g. `https://radar.barrgazetas-toolkit.co.uk`
-   4. Go to **Deploys → Trigger deploy** so the new settings take effect.
-   5. Sign up on the page with your own email, click the confirmation link, and you're on the list.
-4. **Link it from the toolkit.** Ask whoever built barrgazetas-toolkit.co.uk to either:
-   - add a button linking to the Netlify address, or
-   - (tidier) in Netlify use **Domain management → Add a domain** with `radar.barrgazetas-toolkit.co.uk` and add the one DNS record Netlify asks for.
+**Location filter:** London + South East (default), London, South East, UK-wide frameworks, Elsewhere in the UK, International, Everything.
 
 ## Changing what it looks for
 
-All rules are plain lists in these files:
+The rules are plain lists you can edit:
 
-- `lib/classify.mjs`: London / South East place names and postcodes, the keywords that sort items into Delivery / Feasibility / Competition / Public realm / Heritage, and the BG fit scoring.
-- `lib/sources/press.mjs`: the press sources and Google News searches.
+- `lib/classify.mjs`: place names and postcodes for each region, the keywords that sort items into Delivery / Feasibility / Competition / Public realm / Heritage, and the BG fit scoring.
+- `lib/sources/press.mjs`: press sources, feeds and searches.
 - `lib/sources/ocds.mjs`: the CPV filter (`CPV_PREFIX = '71'`) for the government APIs.
 - `lib/seeds.mjs`: the hand-researched starting list.
 
-Any change pushed to GitHub redeploys automatically.
-
-## Files
+## For developers
 
 ```
-public/index.html            The page (BG lime #E4EAA6 / sand #DBCFB4 / black, Barlow Condensed + serif)
-netlify/functions/
-  crawl-scheduled.mjs        Runs every 30 minutes
-  refresh.mjs                The "Refresh now" button  (POST /api/refresh)
-  radar.mjs                  Serves the data to the page (GET /api/radar)
-  newsletter.mjs             Sign-up, confirm, unsubscribe (/api/newsletter/…)
-  weekly-digest.mjs          Monday 07:00 UTC email
-lib/                         Crawler, sources, rules, email content
-test/                        Offline tests (npm test)
+server.mjs                  web server + 30-minute timer + Monday email timer
+public/index.html           the page (BG lime #E4EAA6 / sand #DBCFB4 / black; Barlow Condensed + serif)
+lib/crawler.mjs             runs all sources, merges, de-duplicates, prunes
+lib/sources/ocds.mjs        Find a Tender + Contracts Finder
+lib/sources/press.mjs       press / competition sources
+lib/newsletter*.mjs         sign-up, confirm, unsubscribe, Monday email (SMTP or Resend)
+lib/file-store.mjs          JSON file storage in DATA_DIR
+scripts/check-sources.mjs   npm run check: live test of every source
+scripts/crawl-once.mjs      npm run crawl: one crawl from the command line
+test/                       npm test: offline tests with simulated sources
 ```
 
-Subscriber emails are stored in Netlify Blobs (private to the site). Unsubscribing deletes the address.
+API: `GET /api/radar`, `POST /api/refresh`, `GET /api/health`, `POST /api/newsletter/subscribe`, `GET /api/newsletter/confirm|unsubscribe`.

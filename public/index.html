@@ -225,7 +225,9 @@ dialog .buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
             <option value="London">London only</option>
             <option value="South East">South East only</option>
             <option value="National">UK-wide frameworks</option>
-            <option value="all">Everything, incl. international</option>
+            <option value="UK elsewhere">Elsewhere in the UK</option>
+            <option value="International">International</option>
+            <option value="all">Everything</option>
           </select></div>
         <div class="field"><label for="fit">BG fit</label>
           <select id="fit"><option value="all">All</option><option value="strong">High + medium</option><option value="high">High only</option></select></div>
@@ -264,7 +266,7 @@ dialog .buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
       <section class="panel" id="sources-panel">
         <h2>Sources</h2>
         <ul class="sources" id="sources"></ul>
-        <p class="fine">Read automatically every 30 minutes with fixed rules: CPV 71000000 for government notices, keyword and location filters for the press. No AI is involved.</p>
+        <p class="fine">Read automatically every 30 minutes with fixed rules: CPV 71000000 for government notices, keyword and location filters for the press. No AI is involved. A green dot means the source was read successfully, even if nothing new matched.</p>
       </section>
     </aside>
 
@@ -454,14 +456,19 @@ function paintSources() {
   sel.innerHTML = '<option value="all">All sources</option>' + names.map((n) => `<option ${n === cur ? 'selected' : ''}>${esc(n)}</option>`).join('');
   $('sources').innerHTML = (data.sources || []).map((s) => {
     const dot = s.ok === true ? '' : s.ok === false ? 'off' : 'wait';
-    const detail = s.ok === true ? `${s.found} found${s.added ? `, ${s.added} new` : ''} · checked ${ago(s.checkedAt)}${s.note ? ` · ${s.note}` : ''}`
-      : s.ok === false ? `Couldn't be read last time (${s.error || 'error'})${s.lastOk ? `. Last success ${ago(s.lastOk)}` : ''}` : 'Waiting for first check';
-    return `<li><span class="dot ${dot}"></span><a href="${esc(safeUrl(s.home))}" target="_blank" rel="noopener">${esc(s.name)}</a><span></span><small>${esc(detail)}</small></li>`;
+    const listed = s.listed ? `${s.listed} on the radar` : 'nothing matching right now';
+    const detail = s.ok === true ? `Working · ${listed}${s.added ? ` · ${s.added} new last check` : ''} · checked ${ago(s.checkedAt)}`
+      : s.ok === false ? `Couldn't be read last time${s.listed ? ` (still showing ${s.listed} from earlier)` : ''}${s.lastOk ? ` · last success ${ago(s.lastOk)}` : ''}` : 'Waiting for first check';
+    return `<li title="${esc(s.ok === false ? s.error || '' : s.note || '')}"><span class="dot ${dot}"></span><a href="${esc(safeUrl(s.home))}" target="_blank" rel="noopener">${esc(s.name)}</a><span></span><small>${esc(detail)}</small></li>`;
   }).join('') || '<li><small>Source status appears once the live service is running.</small></li>';
 }
 
 function paintLive() {
-  if (live && data.lastCrawl) {
+  if (live && data.crawl && data.crawl.running) {
+    $('liveDot').className = 'dot wait';
+    $('liveText').textContent = data.lastCrawl ? `Checking all sources now… (previous check ${fmtTime(data.lastCrawl)})` : 'First full scan in progress. This takes a few minutes, the list fills in when it finishes.';
+    $('nextText').textContent = '';
+  } else if (live && data.lastCrawl) {
     const failing = (data.sources || []).filter((s) => s.ok === false).length;
     $('liveDot').className = 'dot' + (failing ? ' wait' : '');
     $('liveText').textContent = `Live · sources last checked ${fmtTime(data.lastCrawl)} (${ago(data.lastCrawl)})${failing ? ` · ${failing} source${failing > 1 ? 's' : ''} unavailable` : ''}`;
@@ -469,11 +476,11 @@ function paintLive() {
     $('footStamp').textContent = `Data updated ${new Date(data.lastCrawl).toLocaleString('en-GB')}`;
   } else if (live) {
     $('liveDot').className = 'dot wait';
-    $('liveText').textContent = 'Live service connected. The first automatic check runs within 30 minutes, or press Refresh now.';
+    $('liveText').textContent = 'Live service connected. The first scan starts automatically within a minute.';
     $('nextText').textContent = '';
   } else {
     $('liveDot').className = 'dot off';
-    $('liveText').textContent = 'Offline copy: showing the researched starting list only. Live crawling runs once the site is deployed on Netlify.';
+    $('liveText').textContent = 'Offline copy: showing the researched starting list only. Live crawling runs when the radar server is running.';
     $('nextText').textContent = '';
   }
 }
@@ -486,6 +493,7 @@ async function loadData() {
     if (!res.ok) throw new Error(res.status);
     data = await res.json();
     live = true;
+    if (data.crawl && data.crawl.running) { clearTimeout(loadData.t); loadData.t = setTimeout(loadData, 10000); }
   } catch {
     if (!live) {
       try { data = { items: await (await fetch('seeds.json')).json(), sources: [] }; } catch { data = { items: [], sources: [] }; }
@@ -494,22 +502,30 @@ async function loadData() {
   render();
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 $('refresh').onclick = async () => {
-  const b = $('refresh');
-  if (!live) { $('liveText').textContent = 'Refresh needs the live service (deployed on Netlify).'; return; }
-  b.disabled = true; b.classList.add('busy'); b.querySelector('.label').textContent = 'Checking sources…';
+  const b = $('refresh'), label = b.querySelector('.label');
+  if (!live) { $('liveText').textContent = 'Refresh needs the radar server to be running.'; return; }
+  b.disabled = true; b.classList.add('busy'); label.textContent = 'Checking sources…';
   try {
+    const before = data.lastCrawl;
     const res = await fetch('/api/refresh', { method: 'POST' });
     const out = await res.json();
     if (!res.ok) throw new Error(out.message || res.status);
-    data = out; render();
-    b.querySelector('.label').textContent = out.refreshed ? 'Updated ✓' : 'Already up to date';
+    if (!out.started) { label.textContent = 'Already up to date'; return; }
+    // The check runs on the server; follow it until it finishes (normally under a minute).
+    for (let i = 0; i < 240; i++) {
+      await sleep(i < 10 ? 2000 : 5000);
+      await loadData();
+      if (data.lastCrawl !== before && !(data.crawl && data.crawl.running)) break;
+    }
+    label.textContent = 'Updated ✓';
   } catch (e) {
-    b.querySelector('.label').textContent = 'Try again';
+    label.textContent = 'Try again';
     $('liveText').textContent = 'Refresh failed: ' + e.message;
   } finally {
     b.classList.remove('busy');
-    setTimeout(() => { b.disabled = false; b.querySelector('.label').textContent = 'Refresh now'; }, 4000);
+    setTimeout(() => { b.disabled = false; label.textContent = 'Refresh now'; }, 3000);
   }
 };
 
@@ -535,7 +551,7 @@ $('subForm').onsubmit = async (e) => {
     if (!res.ok || !out.ok) throw new Error(out.message || 'Sign-up is not available yet.');
     msg.textContent = out.message; e.target.reset();
   } catch (err) {
-    msg.className = 'msg err'; msg.textContent = live ? err.message : 'Sign-up works once the site is deployed on Netlify.';
+    msg.className = 'msg err'; msg.textContent = live ? err.message : 'Sign-up works when the radar server is running.';
   }
 };
 

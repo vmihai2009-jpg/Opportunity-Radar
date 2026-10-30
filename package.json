@@ -1,14 +1,21 @@
 {
   "name": "bg-opportunity-radar",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "description": "Barr Gazetas Opportunity Radar - rule-based crawler and dashboard for architecture tenders and competitions",
   "scripts": {
-    "test": "node --test test/",
+    "start": "node server.mjs",
+    "check": "node scripts/check-sources.mjs",
+    "crawl": "node scripts/crawl-once.mjs",
+    "test": "node --test test/crawler.test.mjs",
     "build": "node scripts/build-seeds.mjs"
   },
   "dependencies": {
-    "@netlify/blobs": "^8.1.0"
+    "nodemailer": "^6.10.1",
+    "undici": "^6.29.1"
+  },
+  "engines": {
+    "node": ">=18.17"
   }
 }

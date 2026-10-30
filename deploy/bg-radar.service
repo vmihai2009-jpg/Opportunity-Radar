@@ -1,0 +1,19 @@
+# systemd service for running the radar without Docker.
+# Copy to /etc/systemd/system/bg-radar.service, adjust the paths/user, then:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now bg-radar
+[Unit]
+Description=BG Opportunity Radar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=radar
+WorkingDirectory=/opt/bg-opportunity-radar
+ExecStart=/usr/bin/node server.mjs
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,5 @@
 node_modules/
-.netlify/
-.DS_Store
+data/
 .env
 *.env
+.DS_Store

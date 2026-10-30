@@ -1,0 +1,15 @@
+# Start with:  docker compose up -d --build
+services:
+  radar:
+    build: .
+    container_name: bg-opportunity-radar
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data        # always use the volume below inside Docker
+    ports:
+      - "8080:8080"          # change the left number to use another port on the server
+    volumes:
+      - radar-data:/data     # opportunities + newsletter subscribers survive restarts and updates
+volumes:
+  radar-data:
